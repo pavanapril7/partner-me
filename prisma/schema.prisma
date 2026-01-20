@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String?   @unique
+  passwordHash  String?
+  mobileNumber  String?   @unique
+  email         String?   @unique
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  sessions      Session[]
+  otps          OTP[]
+  loginAttempts LoginAttempt[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
+}
+
+model OTP {
+  id           String   @id @default(cuid())
+  userId       String
+  code         String
+  expiresAt    DateTime
+  isUsed       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isUsed])
+}
+
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  identifier String   // username or mobile number
+  success    Boolean
+  attemptAt  DateTime @default(now())
+  userId     String?
+  
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([identifier, attemptAt])
+}
