@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "@/lib/redux/provider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
+import { Toaster } from "@/components/ui/sonner";
 // Initialize and validate configuration on startup
 import "@/lib/init";
 
@@ -33,9 +35,11 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <AuthProvider>
+            <Header />
             {children}
           </AuthProvider>
         </ReduxProvider>
+        <Toaster />
       </body>
     </html>
   );

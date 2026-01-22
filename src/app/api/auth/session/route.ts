@@ -29,6 +29,7 @@ import { validateSession } from '@/lib/session';
  *       "mobileNumber": "string | null",
  *       "email": "string | null",
  *       "name": "string | null",
+ *       "isAdmin": "boolean",
  *       "createdAt": "ISO date string",
  *       "updatedAt": "ISO date string"
  *     }
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
             mobileNumber: session.user.mobileNumber,
             email: session.user.email,
             name: session.user.name,
+            isAdmin: session.user.isAdmin,
             createdAt: session.user.createdAt.toISOString(),
             updatedAt: session.user.updatedAt.toISOString(),
           },

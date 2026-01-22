@@ -23,14 +23,17 @@ export default function Home() {
             shadcn/ui, Zod validation, Prisma + PostgreSQL, and dual authentication.
           </p>
           <div className="flex gap-2 flex-wrap">
-            <Link href="/example">
-              <Button size="lg">View Example</Button>
+            <Link href="/business-ideas">
+              <Button size="lg">Business Ideas</Button>
             </Link>
             <Link href="/auth-demo">
               <Button size="lg" variant="secondary">Authentication</Button>
             </Link>
-            <Link href="/protected">
-              <Button size="lg" variant="outline">Protected Page</Button>
+            <Link href="/admin/business-ideas">
+              <Button size="lg" variant="outline">Admin: Business Ideas</Button>
+            </Link>
+            <Link href="/admin/partnership-requests">
+              <Button size="lg" variant="outline">Admin: Requests</Button>
             </Link>
           </div>
         </div>

@@ -16,6 +16,7 @@ model User {
   mobileNumber  String?   @unique
   email         String?   @unique
   name          String?
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -60,4 +61,45 @@ model LoginAttempt {
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([identifier, attemptAt])
+}
+
+model BusinessIdea {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  images      String[]
+  budgetMin   Float
+  budgetMax   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  partnershipRequests PartnershipRequest[]
+  
+  @@map("business_ideas")
+}
+
+model PartnershipRequest {
+  id             String            @id @default(cuid())
+  businessIdeaId String
+  name           String
+  phoneNumber    String
+  role           PartnershipRole
+  status         PartnershipStatus @default(PENDING)
+  createdAt      DateTime          @default(now())
+  
+  businessIdea   BusinessIdea @relation(fields: [businessIdeaId], references: [id], onDelete: Cascade)
+  
+  @@map("partnership_requests")
+}
+
+enum PartnershipRole {
+  HELPER
+  OUTLET
+}
+
+enum PartnershipStatus {
+  PENDING
+  CONTACTED
+  ACCEPTED
+  REJECTED
 }

@@ -19,6 +19,7 @@ interface User {
   mobileNumber: string | null;
   email: string | null;
   name: string | null;
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
 }
