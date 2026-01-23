@@ -78,9 +78,23 @@ export default function AdminBusinessIdeasPage() {
     setIsFormOpen(true);
   };
 
-  const handleEdit = (idea: BusinessIdea) => {
-    setEditingIdea(idea);
-    setIsFormOpen(true);
+  const handleEdit = async (idea: BusinessIdea) => {
+    try {
+      // Fetch full business idea details including uploaded images
+      const response = await fetch(`/api/business-ideas/${idea.id}`);
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Fetched full business idea for edit:', data.data);
+        setEditingIdea(data.data);
+        setIsFormOpen(true);
+      } else {
+        toast.error('Failed to load business idea details');
+      }
+    } catch (error) {
+      console.error('Error fetching business idea:', error);
+      toast.error('An error occurred while loading business idea');
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -195,8 +209,8 @@ export default function AdminBusinessIdeasPage() {
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogDescription>
                 Are you sure you want to delete this business idea? This action
-                cannot be undone and will also delete all associated partnership
-                requests.
+                cannot be undone and will permanently delete all associated images,
+                partnership requests, and data.
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2 mt-4">

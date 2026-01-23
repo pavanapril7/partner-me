@@ -74,6 +74,7 @@ model BusinessIdea {
   updatedAt   DateTime @updatedAt
   
   partnershipRequests PartnershipRequest[]
+  uploadedImages      Image[]
   
   @@map("business_ideas")
 }
@@ -102,4 +103,46 @@ enum PartnershipStatus {
   CONTACTED
   ACCEPTED
   REJECTED
+}
+
+enum ImageVariantType {
+  THUMBNAIL
+  MEDIUM
+  FULL
+}
+
+model Image {
+  id             String   @id @default(cuid())
+  businessIdeaId String?
+  filename       String
+  storagePath    String   @unique
+  mimeType       String
+  size           Int
+  width          Int
+  height         Int
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  businessIdea   BusinessIdea? @relation(fields: [businessIdeaId], references: [id], onDelete: Cascade)
+  variants       ImageVariant[]
+  
+  @@index([businessIdeaId, order])
+  @@map("images")
+}
+
+model ImageVariant {
+  id          String           @id @default(cuid())
+  imageId     String
+  variant     ImageVariantType
+  storagePath String           @unique
+  width       Int
+  height      Int
+  size        Int
+  createdAt   DateTime         @default(now())
+  
+  image       Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  
+  @@unique([imageId, variant])
+  @@map("image_variants")
 }

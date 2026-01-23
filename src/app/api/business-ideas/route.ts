@@ -7,6 +7,16 @@ import { ZodError } from 'zod';
 export async function GET() {
   try {
     const businessIdeas = await prisma.businessIdea.findMany({
+      include: {
+        uploadedImages: {
+          orderBy: {
+            order: 'asc',
+          },
+          include: {
+            variants: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -41,7 +51,13 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json();
+    console.log('Creating business idea with data:', body);
+    
     const validatedData = businessIdeaSchema.parse(body);
+
+    // Extract imageIds if provided (for uploaded images)
+    const imageIds = body.imageIds || [];
+    console.log('Image IDs to associate:', imageIds);
 
     // Create business idea in database
     const businessIdea = await prisma.businessIdea.create({
@@ -54,10 +70,43 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Associate uploaded images with the business idea
+    if (imageIds.length > 0) {
+      console.log(`Associating ${imageIds.length} images with business idea ${businessIdea.id}`);
+      
+      await prisma.image.updateMany({
+        where: {
+          id: {
+            in: imageIds,
+          },
+        },
+        data: {
+          businessIdeaId: businessIdea.id,
+        },
+      });
+      
+      console.log('Images associated successfully');
+    }
+
+    // Fetch the complete business idea with uploaded images
+    const completeBusinessIdea = await prisma.businessIdea.findUnique({
+      where: { id: businessIdea.id },
+      include: {
+        uploadedImages: {
+          orderBy: {
+            order: 'asc',
+          },
+          include: {
+            variants: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json(
       {
         success: true,
-        data: businessIdea,
+        data: completeBusinessIdea,
       },
       { status: 201 }
     );

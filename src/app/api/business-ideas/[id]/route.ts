@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/admin-auth';
 import { businessIdeaSchema } from '@/schemas/business-idea.schema';
 import { ZodError } from 'zod';
+import { createStorageProvider } from '@/lib/storage';
 
 export async function GET(
   request: Request,
@@ -13,6 +14,16 @@ export async function GET(
     const businessIdea = await prisma.businessIdea.findUnique({
       where: {
         id,
+      },
+      include: {
+        uploadedImages: {
+          orderBy: {
+            order: 'asc',
+          },
+          include: {
+            variants: true,
+          },
+        },
       },
     });
 
@@ -81,7 +92,13 @@ export async function PUT(
 
     // Parse and validate request body
     const body = await request.json();
+    console.log('Updating business idea with data:', body);
+    
     const validatedData = businessIdeaSchema.parse(body);
+
+    // Extract imageIds if provided (for uploaded images)
+    const imageIds = body.imageIds || [];
+    console.log('Image IDs to associate:', imageIds);
 
     // Update business idea in database
     const businessIdea = await prisma.businessIdea.update({
@@ -95,9 +112,53 @@ export async function PUT(
       },
     });
 
+    // Update image associations if imageIds provided
+    if (imageIds.length > 0) {
+      console.log(`Updating image associations for business idea ${id}`);
+      
+      // First, disassociate all current images (set businessIdeaId to null)
+      await prisma.image.updateMany({
+        where: {
+          businessIdeaId: id,
+        },
+        data: {
+          businessIdeaId: null,
+        },
+      });
+      
+      // Then associate the new set of images
+      await prisma.image.updateMany({
+        where: {
+          id: {
+            in: imageIds,
+          },
+        },
+        data: {
+          businessIdeaId: id,
+        },
+      });
+      
+      console.log('Image associations updated successfully');
+    }
+
+    // Fetch the complete business idea with uploaded images
+    const completeBusinessIdea = await prisma.businessIdea.findUnique({
+      where: { id },
+      include: {
+        uploadedImages: {
+          orderBy: {
+            order: 'asc',
+          },
+          include: {
+            variants: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
-      data: businessIdea,
+      data: completeBusinessIdea,
     });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -140,9 +201,16 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Check if business idea exists
+    // Check if business idea exists and fetch all associated images
     const existingIdea = await prisma.businessIdea.findUnique({
       where: { id },
+      include: {
+        uploadedImages: {
+          include: {
+            variants: true,
+          },
+        },
+      },
     });
 
     if (!existingIdea) {
@@ -158,7 +226,31 @@ export async function DELETE(
       );
     }
 
-    // Delete business idea (cascade delete will handle partnership requests)
+    // Delete all associated images from storage before database deletion
+    if (existingIdea.uploadedImages.length > 0) {
+      const storageProvider = createStorageProvider();
+
+      for (const image of existingIdea.uploadedImages) {
+        try {
+          // Delete the main image file
+          await storageProvider.delete(image.storagePath);
+
+          // Delete all variants
+          for (const variant of image.variants) {
+            await storageProvider.delete(variant.storagePath);
+          }
+        } catch (storageError) {
+          // Log error but continue with deletion
+          // We don't want storage errors to prevent database cleanup
+          console.error(
+            `Error deleting image ${image.id} from storage:`,
+            storageError
+          );
+        }
+      }
+    }
+
+    // Delete business idea (cascade delete will handle database records for images and partnership requests)
     await prisma.businessIdea.delete({
       where: { id },
     });

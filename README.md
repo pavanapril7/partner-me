@@ -322,6 +322,18 @@ The build process:
 - Purges unused CSS
 - Generates static pages where possible
 
+## API Documentation
+
+### Image Upload API
+- [Image Upload API Documentation](docs/IMAGE_UPLOAD_API.md) - Complete reference for image upload, serving, deletion, and reordering endpoints
+
+### Authentication API
+- [Authentication API Documentation](src/app/api/auth/README.md) - Dual authentication system with credentials and OTP
+
+### Configuration
+- [Environment Configuration](docs/ENVIRONMENT_CONFIGURATION.md) - Complete environment variable reference
+- [Authentication Integration](docs/AUTHENTICATION_INTEGRATION.md) - Authentication system integration guide
+
 ## Learn More
 
 ### Documentation

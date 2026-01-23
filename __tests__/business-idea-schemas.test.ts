@@ -36,9 +36,9 @@ describe('Business Idea Schemas', () => {
       expect(() => businessIdeaSchema.parse(invalidData)).toThrow('At least one image is required');
     });
 
-    it('should reject invalid image URLs', () => {
-      const invalidData = { ...validBusinessIdea, images: ['not-a-url'] };
-      expect(() => businessIdeaSchema.parse(invalidData)).toThrow('Each image must be a valid URL');
+    it('should reject empty image paths', () => {
+      const invalidData = { ...validBusinessIdea, images: [''] };
+      expect(() => businessIdeaSchema.parse(invalidData)).toThrow('Image path cannot be empty');
     });
 
     it('should reject negative budgetMin', () => {
@@ -68,6 +68,28 @@ describe('Business Idea Schemas', () => {
           'https://example.com/img1.jpg',
           'https://example.com/img2.jpg',
           'https://example.com/img3.jpg',
+        ],
+      };
+      expect(() => businessIdeaSchema.parse(validData)).not.toThrow();
+    });
+
+    it('should accept API path images', () => {
+      const validData = {
+        ...validBusinessIdea,
+        images: [
+          '/api/images/img_123?variant=full',
+          '/api/images/img_456?variant=full',
+        ],
+      };
+      expect(() => businessIdeaSchema.parse(validData)).not.toThrow();
+    });
+
+    it('should accept mix of URLs and paths', () => {
+      const validData = {
+        ...validBusinessIdea,
+        images: [
+          'https://example.com/img1.jpg',
+          '/api/images/img_123?variant=full',
         ],
       };
       expect(() => businessIdeaSchema.parse(validData)).not.toThrow();

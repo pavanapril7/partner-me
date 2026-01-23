@@ -14,7 +14,7 @@ import { z } from 'zod';
  * Requirements: 4.1, 4.2, 4.3, 5.7, 8.2, 8.3, 8.5
  * - Title: required, non-empty string
  * - Description: required, supports rich text HTML content
- * - Images: array of valid URLs
+ * - Images: array of valid URLs or paths (supports both legacy URLs and new API paths)
  * - Budget: budgetMin must be <= budgetMax
  */
 export const businessIdeaSchema = z
@@ -28,7 +28,7 @@ export const businessIdeaSchema = z
       .min(1, 'Description is required'),
     images: z
       .array(
-        z.string().url('Each image must be a valid URL')
+        z.string().min(1, 'Image path cannot be empty')
       )
       .min(1, 'At least one image is required'),
     budgetMin: z
@@ -62,7 +62,7 @@ export const businessIdeaUpdateSchema = z
       .optional(),
     images: z
       .array(
-        z.string().url('Each image must be a valid URL')
+        z.string().min(1, 'Image path cannot be empty')
       )
       .min(1, 'At least one image is required')
       .optional(),
