@@ -126,19 +126,21 @@ export async function PUT(
         },
       });
       
-      // Then associate the new set of images
-      await prisma.image.updateMany({
-        where: {
-          id: {
-            in: imageIds,
+      // Then associate the new set of images with their order
+      // We need to update each image individually to set the correct order
+      for (let i = 0; i < imageIds.length; i++) {
+        await prisma.image.update({
+          where: {
+            id: imageIds[i],
           },
-        },
-        data: {
-          businessIdeaId: id,
-        },
-      });
+          data: {
+            businessIdeaId: id,
+            order: i,
+          },
+        });
+      }
       
-      console.log('Image associations updated successfully');
+      console.log('Image associations and order updated successfully');
     }
 
     // Fetch the complete business idea with uploaded images

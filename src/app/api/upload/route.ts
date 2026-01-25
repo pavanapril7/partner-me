@@ -13,19 +13,60 @@ import {
  * POST /api/upload
  * Handle image file uploads
  * Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.3, 5.4, 7.1, 7.2, 7.4
+ * 
+ * Supports both authenticated admin uploads and anonymous uploads:
+ * - Admin uploads: Can associate with businessIdeaId, rate limited per user
+ * - Anonymous uploads: Always go to temp storage, rate limited per IP
  */
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate admin user
-    const authResult = await requireAdmin(request);
-    if (authResult.error) {
-      return authResult.error;
+    // Parse multipart form data first to check businessIdeaId
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+    const businessIdeaId = formData.get('businessIdeaId') as string | null;
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NO_FILE',
+            message: 'No file provided',
+          },
+        },
+        { status: 400 }
+      );
     }
 
-    const user = authResult.user;
+    // Determine if this is an authenticated or anonymous upload
+    let userId: string | null = null;
+    let isAnonymous = false;
 
-    // Check rate limit for uploads
-    const rateLimitCheck = checkUploadRateLimit(user.id);
+    // Try to authenticate - if businessIdeaId is provided, require admin auth
+    if (businessIdeaId) {
+      const authResult = await requireAdmin(request);
+      if (authResult.error) {
+        return authResult.error;
+      }
+      userId = authResult.user.id;
+    } else {
+      // Anonymous upload to temp storage
+      isAnonymous = true;
+    }
+
+    // Check rate limit
+    let rateLimitCheck;
+    if (isAnonymous) {
+      // For anonymous uploads, use IP-based rate limiting
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                 request.headers.get('x-real-ip') || 
+                 'unknown';
+      rateLimitCheck = checkUploadRateLimit(ip);
+    } else {
+      // For authenticated uploads, use user ID
+      rateLimitCheck = checkUploadRateLimit(userId!);
+    }
+
     if (!rateLimitCheck.allowed) {
       return NextResponse.json(
         {
@@ -42,24 +83,6 @@ export async function POST(request: NextRequest) {
             'Retry-After': rateLimitCheck.retryAfter?.toString() || '60',
           },
         }
-      );
-    }
-
-    // Parse multipart form data
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const businessIdeaId = formData.get('businessIdeaId') as string | null;
-
-    if (!file) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'NO_FILE',
-            message: 'No file provided',
-          },
-        },
-        { status: 400 }
       );
     }
 
@@ -113,7 +136,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Record upload attempt for rate limiting
-    recordUploadAttempt(user.id);
+    if (isAnonymous) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                 request.headers.get('x-real-ip') || 
+                 'unknown';
+      recordUploadAttempt(ip);
+    } else {
+      recordUploadAttempt(userId!);
+    }
 
     // Process image and generate variants
     const processedImage = await processImage(buffer);

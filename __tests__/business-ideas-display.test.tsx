@@ -15,7 +15,7 @@ jest.mock('next/image', () => ({
 // Mock Next.js Link component
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href }: any) => <a href={href}>{children}</a>,
+  default: ({ children, href }: unknown) => <a href={href}>{children}</a>,
 }));
 
 // Mock sonner toast
@@ -215,8 +215,8 @@ describe('Business Ideas Display Components', () => {
       render(<BusinessIdeaDetail businessIdea={businessIdea} />);
       
       expect(screen.getByText('Investment Range')).toBeInTheDocument();
-      expect(screen.getByText('$10,000')).toBeInTheDocument();
-      expect(screen.getByText('$50,000')).toBeInTheDocument();
+      expect(screen.getByText('₹10,000')).toBeInTheDocument();
+      expect(screen.getByText('₹50,000')).toBeInTheDocument();
     });
   });
 });

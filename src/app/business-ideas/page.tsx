@@ -2,6 +2,7 @@ import { BusinessIdeasList } from '@/components/business-ideas/BusinessIdeasList
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface BusinessIdea {
   id: string;
@@ -45,11 +46,18 @@ export default async function BusinessIdeasPage() {
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Business Ideas</h1>
-          <p className="text-muted-foreground">
-            Explore exciting business opportunities and find your next venture
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Business Ideas</h1>
+            <p className="text-muted-foreground">
+              Explore exciting business opportunities and find your next venture
+            </p>
+          </div>
+          <Link href="/submit">
+            <Button size="lg">
+              Submit Your Idea
+            </Button>
+          </Link>
         </div>
         
         {businessIdeas.length === 0 ? (

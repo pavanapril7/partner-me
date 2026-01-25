@@ -108,6 +108,9 @@ describe('Authentication Configuration', () => {
       process.env.DATABASE_URL = 'postgresql://user@localhost:5432/test';
       process.env.SMS_PROVIDER = 'twilio';
       // Missing Twilio variables
+      delete process.env.TWILIO_ACCOUNT_SID;
+      delete process.env.TWILIO_AUTH_TOKEN;
+      delete process.env.TWILIO_PHONE_NUMBER;
 
       expect(() => validateConfig()).toThrow(ConfigValidationError);
       expect(() => validateConfig()).toThrow('Missing required environment variable: TWILIO_ACCOUNT_SID');

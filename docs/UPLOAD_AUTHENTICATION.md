@@ -1,20 +1,72 @@
 # Upload Endpoint Authentication
 
-## Expected Behavior
+## Overview
 
-The upload endpoint (`POST /api/upload`) requires admin authentication. This is a security feature implemented in Task 22.3.
+The upload endpoint (`POST /api/upload`) supports both **authenticated admin uploads** and **anonymous uploads** for different use cases:
+
+- **Admin uploads**: Require authentication, can associate images with business ideas
+- **Anonymous uploads**: No authentication required, images go to temporary storage for anonymous submissions
+
+## Authentication Behavior
+
+### Anonymous Uploads (No businessIdeaId)
+
+When uploading without a `businessIdeaId`, the endpoint allows anonymous uploads:
+
+```typescript
+// Anonymous upload - no authentication required
+const formData = new FormData();
+formData.append('file', file);
+// No businessIdeaId = anonymous upload to temp storage
+
+const response = await fetch('/api/upload', {
+  method: 'POST',
+  body: formData,
+});
+```
+
+**Use case**: Anonymous business idea submissions via `/submit` page
+
+### Admin Uploads (With businessIdeaId)
+
+When uploading with a `businessIdeaId`, admin authentication is required:
+
+```typescript
+// Admin upload - authentication required
+const formData = new FormData();
+formData.append('file', file);
+formData.append('businessIdeaId', 'business-idea-id');
+
+const response = await fetch('/api/upload', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${sessionToken}`,
+  },
+  body: formData,
+});
+```
+
+**Use case**: Admin managing business ideas via admin panel
 
 ## Client-Side Implementation
 
-The client-side code automatically includes the authentication token from localStorage when making upload requests. This is handled by the `api-client` utility module.
+The client-side code automatically includes the authentication token from localStorage when making authenticated upload requests. This is handled by the `api-client` utility module.
 
 ### Using the API Client
 
 ```typescript
 import { uploadFile, deleteImage, reorderImages } from '@/lib/api-client';
 
-// Upload a file (authentication is automatic)
+// Admin upload with authentication (automatic)
 const result = await uploadFile(file, businessIdeaId);
+
+// Anonymous upload (no authentication needed)
+const formData = new FormData();
+formData.append('file', file);
+const response = await fetch('/api/upload', {
+  method: 'POST',
+  body: formData,
+});
 
 // Delete an image (authentication is automatic)
 const result = await deleteImage(imageId);
@@ -24,13 +76,21 @@ const result = await reorderImages(businessIdeaId, imageIds);
 ```
 
 The API client automatically:
-- ✅ Retrieves the session token from localStorage
-- ✅ Includes the Authorization header in all requests
+- ✅ Retrieves the session token from localStorage for admin operations
+- ✅ Includes the Authorization header in authenticated requests
 - ✅ Handles authentication errors gracefully
+- ✅ Allows anonymous uploads when no businessIdeaId is provided
 
-## 401 Response Means Authentication is Working
+## Rate Limiting
 
-If you see a 401 response when testing the upload endpoint:
+Both anonymous and authenticated uploads are rate-limited:
+
+- **Anonymous uploads**: Rate limited by IP address
+- **Admin uploads**: Rate limited by user ID
+
+## 401 Response for Admin Uploads
+
+If you see a 401 response when uploading with a `businessIdeaId`:
 
 ```json
 {
@@ -42,16 +102,38 @@ If you see a 401 response when testing the upload endpoint:
 }
 ```
 
-**This is correct behavior!** It means the security is working as intended.
+**This is correct behavior!** It means the security is working as intended for admin operations.
 
 ## How to Upload Images
 
-To successfully upload images, you must:
+### Anonymous Upload (No Authentication)
 
-1. **Authenticate as an admin user** first
-2. **Include the session token** in the request
+For anonymous submissions, simply upload without a businessIdeaId:
 
-### Step 1: Login as Admin
+```bash
+# Anonymous upload - no authentication needed
+curl -X POST http://localhost:3000/api/upload \
+  -F "file=@/path/to/image.jpg"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "img_xyz123",
+    "url": "/api/images/img_xyz123?variant=full",
+    "thumbnail": "/api/images/img_xyz123?variant=thumbnail",
+    "medium": "/api/images/img_xyz123?variant=medium"
+  }
+}
+```
+
+### Admin Upload (With Authentication)
+
+To upload images associated with a business idea, you must authenticate as an admin:
+
+#### Step 1: Login as Admin
 
 ```bash
 # Login with admin credentials
@@ -74,13 +156,14 @@ Response will include a token:
 }
 ```
 
-### Step 2: Upload Image with Token
+#### Step 2: Upload Image with Token and businessIdeaId
 
 ```bash
 # Upload image with authentication
 curl -X POST http://localhost:3000/api/upload \
   -H "Authorization: Bearer your-session-token-here" \
-  -F "file=@/path/to/image.jpg"
+  -F "file=@/path/to/image.jpg" \
+  -F "businessIdeaId=business-idea-id"
 ```
 
 ## Creating an Admin User
@@ -115,11 +198,13 @@ const response = await fetch('/api/upload', {
 
 ## Security Benefits
 
-This authentication requirement:
-- ✅ Prevents unauthorized users from uploading images
-- ✅ Protects server resources from abuse
-- ✅ Ensures only admins can manage business idea content
-- ✅ Provides audit trail of who uploaded what
+This dual-mode authentication approach:
+- ✅ Allows anonymous users to submit business ideas with images
+- ✅ Prevents unauthorized association of images with existing business ideas
+- ✅ Protects server resources from abuse through rate limiting
+- ✅ Ensures only admins can manage business idea content directly
+- ✅ Provides audit trail of who uploaded what (for admin uploads)
+- ✅ Isolates anonymous uploads in temporary storage until approved
 
 ## Troubleshooting
 

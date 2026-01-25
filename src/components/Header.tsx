@@ -20,7 +20,7 @@ export function Header() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2 group">
+        <Link href="/business-ideas" className="flex items-center space-x-2 group">
           <div className="flex items-center gap-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
@@ -67,6 +67,17 @@ export function Header() {
                     )}
                   >
                     Manage Ideas
+                  </Link>
+                  <Link
+                    href="/admin/submissions"
+                    className={cn(
+                      'text-sm font-medium transition-colors hover:text-primary',
+                      pathname?.startsWith('/admin/submissions')
+                        ? 'text-foreground'
+                        : 'text-muted-foreground'
+                    )}
+                  >
+                    Submissions
                   </Link>
                   <Link
                     href="/admin/partnership-requests"

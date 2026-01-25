@@ -4,8 +4,25 @@ import { businessIdeaSchema } from '@/schemas/business-idea.schema';
 import { requireAdmin } from '@/lib/admin-auth';
 import { ZodError } from 'zod';
 
+/**
+ * GET /api/business-ideas
+ * 
+ * Returns all public business ideas, including:
+ * - Business ideas created directly by admins
+ * - Anonymous submissions that have been approved by admins
+ * 
+ * Note: Pending and rejected anonymous submissions are stored in a separate
+ * AnonymousSubmission table and are NOT included in this query. Only approved
+ * anonymous submissions create BusinessIdea records and appear in this list.
+ * 
+ * Requirements: 1.4, 10.3 - Ensures anonymous submissions are isolated from
+ * public queries until approved.
+ */
 export async function GET() {
   try {
+    // Query all business ideas from the BusinessIdea table
+    // This naturally excludes pending/rejected anonymous submissions since
+    // they only exist in the AnonymousSubmission table until approved
     const businessIdeas = await prisma.businessIdea.findMany({
       include: {
         uploadedImages: {

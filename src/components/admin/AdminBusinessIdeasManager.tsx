@@ -63,7 +63,13 @@ export function AdminBusinessIdeasManager({
   };
 
   const formatBudget = (min: number, max: number) => {
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+    const formatter = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    return `${formatter.format(min)} - ${formatter.format(max)}`;
   };
 
   const truncateText = (text: string, maxLength: number) => {

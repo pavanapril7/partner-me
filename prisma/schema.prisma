@@ -20,9 +20,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  sessions      Session[]
-  otps          OTP[]
-  loginAttempts LoginAttempt[]
+  sessions              Session[]
+  otps                  OTP[]
+  loginAttempts         LoginAttempt[]
+  approvedSubmissions   AnonymousSubmission[] @relation("ApprovedSubmissions")
+  rejectedSubmissions   AnonymousSubmission[] @relation("RejectedSubmissions")
+  submissionAuditLogs   SubmissionAuditLog[]
 }
 
 model Session {
@@ -75,6 +78,7 @@ model BusinessIdea {
   
   partnershipRequests PartnershipRequest[]
   uploadedImages      Image[]
+  anonymousSubmission AnonymousSubmission?
   
   @@map("business_ideas")
 }
@@ -124,8 +128,9 @@ model Image {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   
-  businessIdea   BusinessIdea? @relation(fields: [businessIdeaId], references: [id], onDelete: Cascade)
-  variants       ImageVariant[]
+  businessIdea             BusinessIdea?             @relation(fields: [businessIdeaId], references: [id], onDelete: Cascade)
+  variants                 ImageVariant[]
+  anonymousSubmissionImage AnonymousSubmissionImage?
   
   @@index([businessIdeaId, order])
   @@map("images")
@@ -145,4 +150,81 @@ model ImageVariant {
   
   @@unique([imageId, variant])
   @@map("image_variants")
+}
+
+// Anonymous Submission Models
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubmissionAction {
+  CREATED
+  EDITED
+  APPROVED
+  REJECTED
+  FLAGGED
+  UNFLAGGED
+}
+
+model AnonymousSubmission {
+  id               String           @id @default(cuid())
+  title            String
+  description      String           @db.Text
+  budgetMin        Float
+  budgetMax        Float
+  contactEmail     String?
+  contactPhone     String?
+  submitterIp      String
+  status           SubmissionStatus @default(PENDING)
+  rejectionReason  String?          @db.Text
+  flaggedForReview Boolean          @default(false)
+  flagReason       String?
+  approvedById     String?
+  rejectedById     String?
+  businessIdeaId   String?          @unique
+  submittedAt      DateTime         @default(now())
+  reviewedAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  images           AnonymousSubmissionImage[]
+  auditLogs        SubmissionAuditLog[]
+  approvedBy       User?            @relation("ApprovedSubmissions", fields: [approvedById], references: [id], onDelete: SetNull)
+  rejectedBy       User?            @relation("RejectedSubmissions", fields: [rejectedById], references: [id], onDelete: SetNull)
+  businessIdea     BusinessIdea?    @relation(fields: [businessIdeaId], references: [id], onDelete: SetNull)
+  
+  @@index([status, submittedAt])
+  @@index([submitterIp, submittedAt])
+  @@map("anonymous_submissions")
+}
+
+model AnonymousSubmissionImage {
+  id           String              @id @default(cuid())
+  submissionId String
+  imageId      String              @unique
+  order        Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  
+  submission   AnonymousSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  image        Image               @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  
+  @@index([submissionId, order])
+  @@map("anonymous_submission_images")
+}
+
+model SubmissionAuditLog {
+  id           String              @id @default(cuid())
+  submissionId String
+  action       SubmissionAction
+  performedBy  String?
+  details      Json?
+  createdAt    DateTime            @default(now())
+  
+  submission   AnonymousSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user         User?               @relation(fields: [performedBy], references: [id], onDelete: SetNull)
+  
+  @@index([submissionId, createdAt])
+  @@map("submission_audit_logs")
 }

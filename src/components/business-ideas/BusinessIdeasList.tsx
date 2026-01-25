@@ -46,7 +46,7 @@ function BusinessIdeaCard({ idea, index }: { idea: BusinessIdea; index: number }
   const thumbnailVariant = primaryImage?.variants.find(v => v.variant === 'THUMBNAIL');
   
   // Fallback to old images array if no uploaded images
-  const imageUrl = thumbnailVariant 
+  const imageUrl = thumbnailVariant && primaryImage
     ? `/api/images/${primaryImage.id}?variant=thumbnail`
     : idea.images?.[0];
 

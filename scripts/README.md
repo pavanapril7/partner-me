@@ -184,3 +184,54 @@ This is normal if:
 - No orphaned or temp images exist
 - All images are less than 24 hours old
 - Cleanup was recently run
+
+
+## Anonymous Submission Cleanup
+
+### cleanup-anonymous-submissions.ts
+
+Comprehensive cleanup of anonymous submissions and their associated images.
+
+**What it does:**
+- Deletes all anonymous submissions from database
+- Removes associated images from storage
+- Cleans up empty directories
+- Provides detailed progress output
+
+**Usage:**
+```bash
+npx tsx scripts/cleanup-anonymous-submissions.ts
+```
+
+**Note:** Requires Prisma client to be properly generated. If you encounter issues, use the simpler alternatives below.
+
+### cleanup-temp-images-simple.ts
+
+Simple cleanup of temporary uploaded images (no database access needed).
+
+**What it does:**
+- Removes all files from `public/uploads/temp/`
+- No database access required
+- Fast and reliable
+
+**Usage:**
+```bash
+npx tsx scripts/cleanup-temp-images-simple.ts
+```
+
+### Manual Database Cleanup
+
+If the Prisma client has issues, use direct SQL commands:
+
+```bash
+# Delete all anonymous submissions
+npx prisma db execute --stdin <<< "DELETE FROM anonymous_submissions;"
+
+# Delete orphaned images (not associated with business ideas)
+npx prisma db execute --stdin <<< "DELETE FROM images WHERE \"businessIdeaId\" IS NULL;"
+```
+
+**When to use manual cleanup:**
+- After Prisma schema changes before regenerating client
+- When Prisma client is out of sync with database
+- For quick cleanup without running full scripts

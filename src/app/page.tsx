@@ -26,8 +26,11 @@ export default function Home() {
             <Link href="/business-ideas">
               <Button size="lg">Business Ideas</Button>
             </Link>
+            <Link href="/submit">
+              <Button size="lg" variant="secondary">Submit Your Idea</Button>
+            </Link>
             <Link href="/auth-demo">
-              <Button size="lg" variant="secondary">Authentication</Button>
+              <Button size="lg" variant="outline">Authentication</Button>
             </Link>
             <Link href="/admin/business-ideas">
               <Button size="lg" variant="outline">Admin: Business Ideas</Button>
