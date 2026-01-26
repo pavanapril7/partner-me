@@ -12,11 +12,18 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface UploadedImage {
+  id: string;
+  filename: string;
+  order: number;
+}
+
 interface BusinessIdea {
   id: string;
   title: string;
   description: string;
   images: string[];
+  uploadedImages?: UploadedImage[];
   budgetMin: number;
   budgetMax: number;
   createdAt: string;
@@ -157,7 +164,9 @@ export function AdminBusinessIdeasManager({
                   <TableCell>
                     {formatBudget(idea.budgetMin, idea.budgetMax)}
                   </TableCell>
-                  <TableCell>{idea.images.length} image(s)</TableCell>
+                  <TableCell>
+                    {(idea.uploadedImages?.length || idea.images.length)} image(s)
+                  </TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button
                       variant="outline"

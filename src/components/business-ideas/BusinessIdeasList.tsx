@@ -118,6 +118,9 @@ function BusinessIdeaCard({ idea, index }: { idea: BusinessIdea; index: number }
         </CardHeader>
         <CardContent className="p-6">
           <CardTitle className="text-xl">{idea.title}</CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            ₹{idea.budgetMin.toLocaleString()} - ₹{idea.budgetMax.toLocaleString()}
+          </p>
         </CardContent>
       </Card>
     </Link>
