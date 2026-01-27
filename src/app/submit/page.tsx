@@ -17,57 +17,57 @@ export const metadata: Metadata = {
 export default function SubmitPage() {
   return (
     <ErrorBoundary>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-4xl">
         {/* Page Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-3">Submit Your Business Idea</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3">Submit Your Business Idea</h1>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Have an innovative business idea? Share it with us! No account required.
           </p>
         </div>
 
         {/* Information Card */}
-        <Card className="mb-8 border-primary/20 bg-primary/5">
+        <Card className="mb-6 sm:mb-8 border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="text-xl">How It Works</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">How It Works</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Your submission process in three simple steps
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                     1
                   </div>
-                  <h3 className="font-semibold">Submit</h3>
+                  <h3 className="font-semibold text-sm sm:text-base">Submit</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Fill out the form below with your business idea details, budget, and images.
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                     2
                   </div>
-                  <h3 className="font-semibold">Review</h3>
+                  <h3 className="font-semibold text-sm sm:text-base">Review</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Our team will review your submission within 2-3 business days.
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                     3
                   </div>
-                  <h3 className="font-semibold">Publish</h3>
+                  <h3 className="font-semibold text-sm sm:text-base">Publish</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Once approved, your idea will be published on our platform for the community to see.
                 </p>
               </div>

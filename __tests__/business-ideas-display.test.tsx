@@ -6,7 +6,7 @@ import { BusinessIdeaDetail } from '@/components/business-ideas/BusinessIdeaDeta
 // Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: unknown) => {
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img {...props} />;
   },
@@ -104,14 +104,16 @@ describe('Business Ideas Display Components', () => {
       render(<BusinessIdeasList businessIdeas={businessIdeas} />);
       
       expect(screen.getByText('No Image Business Idea')).toBeInTheDocument();
-      const placeholder = screen.getByAltText('No image available');
-      expect(placeholder).toHaveAttribute('src', '/placeholder-image.svg');
+      // The new implementation shows an SVG icon instead of a placeholder image
+      const container = screen.getByText('No Image Business Idea').closest('a');
+      expect(container).toBeInTheDocument();
     });
 
     it('should render empty state when no business ideas', () => {
       render(<BusinessIdeasList businessIdeas={[]} />);
       
-      expect(screen.getByText('No business ideas available at the moment.')).toBeInTheDocument();
+      expect(screen.getByText('No business ideas yet')).toBeInTheDocument();
+      expect(screen.getByText(/Be the first to share your innovative business idea/)).toBeInTheDocument();
     });
   });
 

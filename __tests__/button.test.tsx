@@ -13,7 +13,7 @@ describe('Button Component', () => {
     render(<Button variant="secondary">Secondary</Button>);
     const button = screen.getByRole('button', { name: /secondary/i });
     expect(button).toBeInTheDocument();
-    expect(button.className).toContain('bg-secondary');
+    expect(button.className).toContain('from-secondary-500');
   });
 
   it('should render with outline variant', () => {
@@ -30,7 +30,7 @@ describe('Button Component', () => {
 
     rerender(<Button size="lg">Large</Button>);
     button = screen.getByRole('button', { name: /large/i });
-    expect(button.className).toContain('h-10');
+    expect(button.className).toContain('h-12');
   });
 
   it('should apply custom className', () => {

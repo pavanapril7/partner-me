@@ -45,16 +45,16 @@ export default async function BusinessIdeasPage() {
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Business Ideas</h1>
-            <p className="text-muted-foreground">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <div className="mb-6 sm:mb-8 lg:mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+          <div className="flex-1">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">Business Ideas</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Explore exciting business opportunities and find your next venture
             </p>
           </div>
-          <Link href="/submit">
-            <Button size="lg">
+          <Link href="/submit" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto min-w-[160px]">
               Submit Your Idea
             </Button>
           </Link>
