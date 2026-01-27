@@ -191,7 +191,17 @@ export function AdminSubmissionDetail({ submissionId }: AdminSubmissionDetailPro
       const data = await response.json();
 
       if (data.success) {
-        setSubmission(data.data);
+        const updatedSubmission = data.data.submission || data.data;
+        setSubmission(updatedSubmission);
+        // Update edit data to match the saved submission
+        setEditData({
+          title: updatedSubmission.title,
+          description: updatedSubmission.description,
+          budgetMin: updatedSubmission.budgetMin,
+          budgetMax: updatedSubmission.budgetMax,
+          contactEmail: updatedSubmission.contactEmail || '',
+          contactPhone: updatedSubmission.contactPhone || '',
+        });
         setIsEditMode(false);
         toast.success('Changes saved', {
           description: 'The submission has been updated.',

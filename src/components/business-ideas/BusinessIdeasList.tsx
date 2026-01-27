@@ -52,10 +52,15 @@ function BusinessIdeaCard({ idea, index }: { idea: BusinessIdea; index: number }
 
   const hasImage = (primaryImage || idea.images?.[0]) && !imageError;
 
-  // Truncate description to a reasonable length
-  const truncatedDescription = idea.description?.length > 120 
-    ? idea.description.substring(0, 120) + '...' 
-    : idea.description;
+  // Strip HTML tags and truncate description to a reasonable length
+  const stripHtml = (html: string) => {
+    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  };
+  
+  const plainDescription = idea.description ? stripHtml(idea.description) : '';
+  const truncatedDescription = plainDescription.length > 120 
+    ? plainDescription.substring(0, 120) + '...' 
+    : plainDescription;
 
   return (
     <Link key={idea.id} href={`/business-ideas/${idea.id}`} className="group">
@@ -155,11 +160,11 @@ function BusinessIdeaCard({ idea, index }: { idea: BusinessIdea; index: number }
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
               <span className="text-sm font-medium text-foreground">
-                ₹{idea.budgetMin.toLocaleString()} - ₹{idea.budgetMax.toLocaleString()}
+                ₹{idea.budgetMin.toLocaleString('en-IN')} - ₹{idea.budgetMax.toLocaleString('en-IN')}
               </span>
             </div>
             
