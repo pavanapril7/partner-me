@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AdminBusinessIdeasManager } from '@/components/admin/AdminBusinessIdeasManager';
 import { AdminBusinessIdeaForm, BusinessIdeaFormData } from '@/components/admin/AdminBusinessIdeaForm';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import {
   Dialog,
   DialogContent,
@@ -12,11 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { authenticatedFetch } from '@/lib/api-client';
 
 interface BusinessIdea {
   id: string;
@@ -29,49 +27,12 @@ interface BusinessIdea {
   updatedAt: string;
 }
 
-export default function AdminBusinessIdeasPage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+function AdminBusinessIdeasContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingIdea, setEditingIdea] = useState<BusinessIdea | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  // Protect the page - redirect if not authenticated or not admin
-  useEffect(() => {
-    if (!isLoading && (!user || !user.isAdmin)) {
-      router.push('/auth-demo');
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-10 w-48" />
-          </div>
-          <div className="border rounded-lg p-4">
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-12 flex-1" />
-                  <Skeleton className="h-12 w-32" />
-                  <Skeleton className="h-12 w-32" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || !user.isAdmin) {
-    return null;
-  }
 
   const handleCreate = () => {
     setEditingIdea(null);
@@ -106,12 +67,8 @@ export default function AdminBusinessIdeasPage() {
     if (!deletingId) return;
 
     try {
-      const token = localStorage.getItem('auth_session_token');
-      const response = await fetch(`/api/business-ideas/${deletingId}`, {
+      const response = await authenticatedFetch(`/api/business-ideas/${deletingId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       const data = await response.json();
@@ -133,17 +90,15 @@ export default function AdminBusinessIdeasPage() {
 
   const handleFormSubmit = async (formData: BusinessIdeaFormData) => {
     try {
-      const token = localStorage.getItem('auth_session_token');
       const url = editingIdea
         ? `/api/business-ideas/${editingIdea.id}`
         : '/api/business-ideas';
       const method = editingIdea ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -231,5 +186,13 @@ export default function AdminBusinessIdeasPage() {
         </Dialog>
       </div>
     </ErrorBoundary>
+  );
+}
+
+export default function AdminBusinessIdeasPage() {
+  return (
+    <ProtectedRoute requireAdmin={true}>
+      <AdminBusinessIdeasContent />
+    </ProtectedRoute>
   );
 }

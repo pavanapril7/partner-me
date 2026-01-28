@@ -30,7 +30,7 @@ describe('Session Validation API', () => {
         id: 'session-123',
         userId: 'user-456',
         token: 'valid-session-token',
-        expiresAt: new Date('2026-01-27T12:00:00Z'),
+        expiresAt: new Date('2026-02-27T12:00:00Z'), // Future date
         createdAt: new Date('2026-01-20T12:00:00Z'),
         user: {
           id: 'user-456',
@@ -38,6 +38,7 @@ describe('Session Validation API', () => {
           mobileNumber: '+1234567890',
           email: 'john@example.com',
           name: 'John Doe',
+          isAdmin: false,
           createdAt: new Date('2026-01-15T10:00:00Z'),
           updatedAt: new Date('2026-01-20T10:00:00Z'),
         },
@@ -126,7 +127,7 @@ describe('Session Validation API', () => {
         id: 'session-1',
         userId: 'user-1',
         token: 'test-token',
-        expiresAt: new Date('2026-01-27'),
+        expiresAt: new Date('2026-02-27'), // Future date
         createdAt: new Date('2026-01-20'),
         user: {
           id: 'user-1',
@@ -134,6 +135,7 @@ describe('Session Validation API', () => {
           mobileNumber: '+1234567890',
           email: 'test@example.com',
           name: 'Test User',
+          isAdmin: false,
           createdAt: new Date('2026-01-20'),
           updatedAt: new Date('2026-01-20'),
         },
@@ -159,7 +161,7 @@ describe('Session Validation API', () => {
         id: 'session-2',
         userId: 'user-2',
         token: 'username-token',
-        expiresAt: new Date('2026-01-27'),
+        expiresAt: new Date('2026-02-27'), // Future date
         createdAt: new Date('2026-01-20'),
         user: {
           id: 'user-2',
@@ -167,6 +169,7 @@ describe('Session Validation API', () => {
           mobileNumber: null,
           email: null,
           name: null,
+          isAdmin: false,
           createdAt: new Date('2026-01-20'),
           updatedAt: new Date('2026-01-20'),
         },
@@ -186,7 +189,7 @@ describe('Session Validation API', () => {
         id: 'session-3',
         userId: 'user-3',
         token: 'mobile-token',
-        expiresAt: new Date('2026-01-27'),
+        expiresAt: new Date('2026-02-27'), // Future date
         createdAt: new Date('2026-01-20'),
         user: {
           id: 'user-3',
@@ -194,6 +197,7 @@ describe('Session Validation API', () => {
           mobileNumber: '+9876543210',
           email: null,
           name: null,
+          isAdmin: false,
           createdAt: new Date('2026-01-20'),
           updatedAt: new Date('2026-01-20'),
         },

@@ -10,6 +10,7 @@ interface OTPInputProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: boolean;
+  ariaDescribedBy?: string;
 }
 
 /**
@@ -28,7 +29,8 @@ export function OTPInput({
   value, 
   onChange, 
   disabled = false,
-  error = false 
+  error = false,
+  ariaDescribedBy
 }: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
@@ -89,7 +91,7 @@ export function OTPInput({
   };
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex gap-1.5 sm:gap-2 justify-center">
       {digits.map((digit, index) => (
         <Input
           key={index}
@@ -107,11 +109,13 @@ export function OTPInput({
           onBlur={() => setFocusedIndex(null)}
           disabled={disabled}
           className={cn(
-            'w-12 h-12 text-center text-lg font-semibold',
+            'w-10 h-11 sm:w-12 sm:h-12 text-center text-base sm:text-lg font-semibold min-h-[44px]',
             error && 'border-destructive focus-visible:ring-destructive',
             focusedIndex === index && 'ring-2 ring-ring'
           )}
           aria-label={`OTP digit ${index + 1}`}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={error}
         />
       ))}
     </div>

@@ -11,7 +11,7 @@ export default function DebugAuthPage() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/auth-demo');
+    router.push('/');
   };
 
   const clearLocalStorage = () => {
@@ -82,7 +82,7 @@ export default function DebugAuthPage() {
               <p className="text-muted-foreground mb-4">
                 You are not logged in.
               </p>
-              <Button onClick={() => router.push('/auth-demo')}>
+              <Button onClick={() => router.push('/login')}>
                 Go to Login
               </Button>
             </div>

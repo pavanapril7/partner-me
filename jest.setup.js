@@ -37,3 +37,10 @@ if (!Response.json) {
     });
   };
 }
+
+// Mock ResizeObserver for Radix UI components
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

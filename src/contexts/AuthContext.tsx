@@ -41,7 +41,7 @@ interface AuthContextType {
   isLoading: boolean;
   
   // Methods
-  login: (token: string) => Promise<void>;
+  login: (token: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -49,6 +49,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_TOKEN_KEY = 'auth_session_token';
+const REMEMBER_ME_KEY = 'auth_remember_me';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -89,7 +90,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Load session from storage and validate
-   * Requirements: 6.4
+   * Requirements: 6.4, 8.4
+   * 
+   * Checks both localStorage and sessionStorage for tokens.
+   * If remember me was enabled, token is in localStorage.
+   * Otherwise, token is in sessionStorage.
    */
   const loadSession = useCallback(async () => {
     setIsLoading(true);
@@ -100,8 +105,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Try to get token from localStorage
-      const token = localStorage.getItem(SESSION_TOKEN_KEY);
+      // Try to get token from localStorage first (remember me)
+      let token = localStorage.getItem(SESSION_TOKEN_KEY);
+      let isRemembered = false;
+      
+      if (token) {
+        isRemembered = true;
+      } else {
+        // Try sessionStorage (non-persistent session)
+        token = sessionStorage.getItem(SESSION_TOKEN_KEY);
+      }
       
       if (!token) {
         setSession(null);
@@ -113,9 +126,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       if (validatedSession) {
         setSession(validatedSession);
+        // Ensure token is in the correct storage based on remember me flag
+        if (isRemembered) {
+          localStorage.setItem(SESSION_TOKEN_KEY, token);
+          localStorage.setItem(REMEMBER_ME_KEY, 'true');
+        } else {
+          sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+        }
       } else {
-        // Token is invalid, clear it
+        // Token is invalid, clear it from both storages
         localStorage.removeItem(SESSION_TOKEN_KEY);
+        localStorage.removeItem(REMEMBER_ME_KEY);
+        sessionStorage.removeItem(SESSION_TOKEN_KEY);
         setSession(null);
       }
     } catch (error) {
@@ -128,9 +150,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Login with a session token
-   * Requirements: 6.4
+   * Requirements: 6.4, 2.5
+   * 
+   * @param token - The session token from authentication
+   * @param rememberMe - If true, persists session across browser restarts using localStorage.
+   *                     If false, uses sessionStorage for current session only.
    */
-  const login = useCallback(async (token: string) => {
+  const login = useCallback(async (token: string, rememberMe: boolean = false) => {
     try {
       // Validate the token
       const validatedSession = await validateSession(token);
@@ -139,8 +165,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error('Invalid session token');
       }
 
-      // Store token in localStorage
-      localStorage.setItem(SESSION_TOKEN_KEY, token);
+      // Clear any existing tokens from both storages
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(REMEMBER_ME_KEY);
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+
+      // Store token based on remember me preference
+      if (rememberMe) {
+        // Persistent storage - survives browser restart
+        localStorage.setItem(SESSION_TOKEN_KEY, token);
+        localStorage.setItem(REMEMBER_ME_KEY, 'true');
+      } else {
+        // Session storage - cleared when browser closes
+        sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+      }
       
       // Update state
       setSession(validatedSession);
@@ -152,11 +190,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Logout and invalidate session
-   * Requirements: 7.1
+   * Requirements: 7.1, 4.5, 6.3
+   * 
+   * Clears session from both localStorage and sessionStorage
+   * Invalidates session on server
+   * Clears all authentication-related data including intended destination
    */
   const logout = useCallback(async () => {
     try {
-      const token = localStorage.getItem(SESSION_TOKEN_KEY);
+      // Try to get token from either storage
+      const token = localStorage.getItem(SESSION_TOKEN_KEY) || sessionStorage.getItem(SESSION_TOKEN_KEY);
       
       if (token) {
         // Call logout API to invalidate session on server
@@ -171,8 +214,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Always clear local state and storage
+      // Always clear local state and storage from both locations
+      // This ensures complete cleanup even if API call fails
       localStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(REMEMBER_ME_KEY);
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+      // Also clear intended destination to prevent unwanted redirects
+      localStorage.removeItem('auth_intended_destination');
       setSession(null);
     }
   }, []);

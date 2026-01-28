@@ -268,8 +268,7 @@ export function AdminModerationDashboard() {
             {stats.averageReviewTimeHours > 48 && (
               <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                  <AlertIcon />
-                  Review time is above target (48 hours)
+                  ⚠️ Review time is above target (48 hours)
                 </p>
               </div>
             )}

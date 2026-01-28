@@ -6,13 +6,20 @@
 const SESSION_TOKEN_KEY = 'auth_session_token';
 
 /**
- * Get the authentication token from localStorage
+ * Get the authentication token from localStorage or sessionStorage
+ * Checks localStorage first (remember me), then sessionStorage (current session)
  */
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') {
     return null;
   }
-  return localStorage.getItem(SESSION_TOKEN_KEY);
+  // Check localStorage first (remember me enabled)
+  const localToken = localStorage.getItem(SESSION_TOKEN_KEY);
+  if (localToken) {
+    return localToken;
+  }
+  // Fall back to sessionStorage (remember me disabled)
+  return sessionStorage.getItem(SESSION_TOKEN_KEY);
 }
 
 /**

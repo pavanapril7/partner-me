@@ -1,23 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function Header() {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Handle logout with redirect to home page
+   * Requirements: 4.5, 6.3
+   */
   const handleLogout = async () => {
     await logout();
+    // Redirect to home page after logout
+    router.push('/');
   };
 
   const isActive = (path: string) => pathname === path;
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
@@ -95,30 +121,74 @@ export function Header() {
                   </Link>
                 </>
               )}
-              <div className="flex items-center gap-3 ml-2 pl-4 border-l">
-                <span className="text-sm text-muted-foreground">
-                  {user.username || user.mobileNumber || user.email}
-                </span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleLogout}
-                  className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all duration-200"
+              <div className="flex items-center gap-3 ml-2 pl-4 border-l relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent/50 transition-all duration-200"
                 >
-                  Logout
-                </Button>
+                  <span className="text-muted-foreground">
+                    {user.username || user.mobileNumber || user.email}
+                  </span>
+                  <svg
+                    className={cn(
+                      'w-4 h-4 transition-transform duration-200',
+                      userMenuOpen && 'rotate-180'
+                    )}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                
+                {/* User Dropdown Menu */}
+                {userMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-background border rounded-md shadow-lg py-1 z-50">
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent/50 transition-colors text-destructive hover:text-destructive"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             </>
+          ) : isLoading ? (
+            <div className="flex items-center gap-2 ml-2">
+              <div className="h-9 w-20 bg-accent/50 animate-pulse rounded-md"></div>
+              <div className="h-9 w-20 bg-accent/50 animate-pulse rounded-md"></div>
+            </div>
           ) : (
-            <Link href="/auth-demo">
-              <Button 
-                variant="default" 
-                size="sm"
-                className="ml-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300"
-              >
-                Login
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2 ml-2">
+              <Link href="/login">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="hover:bg-accent/50 transition-all duration-200"
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  Register
+                </Button>
+              </Link>
+            </div>
           )}
           
           {/* Theme Toggle */}
@@ -237,16 +307,32 @@ export function Header() {
                   </Button>
                 </div>
               </>
+            ) : isLoading ? (
+              <div className="flex flex-col gap-2">
+                <div className="h-10 bg-accent/50 animate-pulse rounded-md"></div>
+                <div className="h-10 bg-accent/50 animate-pulse rounded-md"></div>
+              </div>
             ) : (
-              <Link href="/auth-demo" onClick={() => setMobileMenuOpen(false)}>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  Login
-                </Button>
-              </Link>
+              <div className="flex flex-col gap-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full hover:bg-accent/50 transition-all duration-200"
+                  >
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-md hover:shadow-lg transition-all duration-300"
+                  >
+                    Register
+                  </Button>
+                </Link>
+              </div>
             )}
           </nav>
         </div>

@@ -3,7 +3,6 @@
  * Task 19: Create authentication UI components
  */
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { OTPInput } from '@/components/auth/OTPInput';
@@ -62,13 +61,16 @@ describe('LoginForm Component', () => {
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
   });
 
-  it('should switch to OTP tab when clicked', () => {
+  it('should switch to OTP tab when clicked', async () => {
     render(<LoginForm />);
     
     const otpTab = screen.getByRole('tab', { name: /otp/i });
     fireEvent.click(otpTab);
     
-    expect(screen.getByLabelText('Mobile Number')).toBeInTheDocument();
+    // Wait for the tab content to render
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Mobile Number')).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 
   it('should validate username and password on submit', async () => {
@@ -98,7 +100,91 @@ describe('LoginForm Component', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith('testuser', 'password123');
+      expect(mockLogin).toHaveBeenCalledWith('testuser', 'password123', false);
+    });
+  });
+
+  it('should call onCredentialLogin with remember me enabled', async () => {
+    const mockLogin = jest.fn().mockResolvedValue(undefined);
+    render(<LoginForm onCredentialLogin={mockLogin} />);
+    
+    fireEvent.change(screen.getByLabelText('Username'), {
+      target: { value: 'testuser' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'password123' },
+    });
+    
+    // Check remember me checkbox
+    const rememberMeCheckbox = screen.getByLabelText('Remember me');
+    fireEvent.click(rememberMeCheckbox);
+    
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    fireEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('testuser', 'password123', true);
+    });
+  });
+
+  it('should call onSuccess callback after successful login', async () => {
+    const mockLogin = jest.fn().mockResolvedValue(undefined);
+    const mockSuccess = jest.fn();
+    render(<LoginForm onCredentialLogin={mockLogin} onSuccess={mockSuccess} />);
+    
+    fireEvent.change(screen.getByLabelText('Username'), {
+      target: { value: 'testuser' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'password123' },
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    fireEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(mockSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('should show improved error message for invalid credentials', async () => {
+    const mockLogin = jest.fn().mockRejectedValue(new Error('Invalid credentials'));
+    render(<LoginForm onCredentialLogin={mockLogin} />);
+    
+    fireEvent.change(screen.getByLabelText('Username'), {
+      target: { value: 'testuser' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'wrongpassword' },
+    });
+    
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    fireEvent.click(submitButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/invalid username or password/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle keyboard navigation with Enter key', async () => {
+    const mockLogin = jest.fn().mockResolvedValue(undefined);
+    render(<LoginForm onCredentialLogin={mockLogin} />);
+    
+    const usernameInput = screen.getByLabelText('Username');
+    const passwordInput = screen.getByLabelText('Password');
+    
+    fireEvent.change(usernameInput, {
+      target: { value: 'testuser' },
+    });
+    fireEvent.change(passwordInput, {
+      target: { value: 'password123' },
+    });
+    
+    // Press Enter on password field
+    fireEvent.keyDown(passwordInput, { key: 'Enter', code: 'Enter' });
+    
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('testuser', 'password123', false);
     });
   });
 
@@ -109,6 +195,11 @@ describe('LoginForm Component', () => {
     // Switch to OTP tab
     const otpTab = screen.getByRole('tab', { name: /otp/i });
     fireEvent.click(otpTab);
+    
+    // Wait for tab content to render
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Mobile Number')).toBeInTheDocument();
+    }, { timeout: 2000 });
     
     // Enter mobile number
     fireEvent.change(screen.getByLabelText('Mobile Number'), {
@@ -135,13 +226,16 @@ describe('RegistrationForm Component', () => {
     expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
   });
 
-  it('should switch to mobile tab when clicked', () => {
+  it('should switch to mobile tab when clicked', async () => {
     render(<RegistrationForm />);
     
     const mobileTab = screen.getByRole('tab', { name: /mobile/i });
     fireEvent.click(mobileTab);
     
-    expect(screen.getByLabelText('Mobile Number')).toBeInTheDocument();
+    // Wait for the tab content to render
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Mobile Number')).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 
   it('should validate password confirmation', async () => {
@@ -186,7 +280,7 @@ describe('RegistrationForm Component', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith('testuser', 'password123');
+      expect(mockRegister).toHaveBeenCalledWith('testuser', 'password123', undefined);
     });
   });
 
@@ -197,6 +291,11 @@ describe('RegistrationForm Component', () => {
     // Switch to mobile tab
     const mobileTab = screen.getByRole('tab', { name: /mobile/i });
     fireEvent.click(mobileTab);
+    
+    // Wait for tab content to render
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Mobile Number')).toBeInTheDocument();
+    }, { timeout: 2000 });
     
     // Enter mobile number
     fireEvent.change(screen.getByLabelText('Mobile Number'), {

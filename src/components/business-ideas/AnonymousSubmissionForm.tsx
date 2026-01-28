@@ -276,9 +276,9 @@ export function AnonymousSubmissionForm({ onSuccess }: AnonymousSubmissionFormPr
   if (showSuccess) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-gradient-to-br from-success/10 via-success/5 to-transparent border-2 border-success/20 rounded-2xl p-8 md:p-12 text-center space-y-6 shadow-lg">
+        <div className="bg-gradient-to-br from-green-50 via-green-25 to-transparent border-2 border-green-200 rounded-2xl p-8 md:p-12 text-center space-y-6 shadow-lg">
           <div className="flex justify-center">
-            <div className="rounded-full bg-gradient-to-br from-success to-success/80 p-4 shadow-xl">
+            <div className="rounded-full bg-gradient-to-br from-green-500 to-green-600 p-4 shadow-xl">
               <svg
                 className="h-16 w-16 text-white"
                 fill="none"

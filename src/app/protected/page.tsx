@@ -51,9 +51,9 @@ function ProtectedContent() {
           </div>
 
           <div className="flex gap-2">
-            <Link href="/auth-demo">
+            <Link href="/">
               <Button variant="outline">
-                Back to Auth Demo
+                Back to Home
               </Button>
             </Link>
             <Button 

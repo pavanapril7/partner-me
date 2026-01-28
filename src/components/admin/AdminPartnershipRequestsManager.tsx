@@ -20,6 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { PartnershipRequestStatusSelector } from './PartnershipRequestStatusSelector';
 import { toast } from 'sonner';
+import { authenticatedFetch } from '@/lib/api-client';
 
 type PartnershipStatus = 'PENDING' | 'CONTACTED' | 'ACCEPTED' | 'REJECTED';
 type PartnershipRole = 'HELPER' | 'OUTLET';
@@ -76,14 +77,8 @@ export function AdminPartnershipRequestsManager() {
         params.append('status', statusFilter);
       }
 
-      const token = localStorage.getItem('auth_session_token');
-      const response = await fetch(
-        `/api/partnership-requests?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authenticatedFetch(
+        `/api/partnership-requests?${params.toString()}`
       );
       const data = await response.json();
 
@@ -123,12 +118,10 @@ export function AdminPartnershipRequestsManager() {
     try {
       setUpdatingStatus(requestId);
 
-      const token = localStorage.getItem('auth_session_token');
-      const response = await fetch(`/api/partnership-requests/${requestId}`, {
+      const response = await authenticatedFetch(`/api/partnership-requests/${requestId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
